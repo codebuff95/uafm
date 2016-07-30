@@ -7,8 +7,11 @@ import(
   "time"
 )
 
+//Driver package for uafm.
+
 func main(){
-  err := database.InitDatabaseSession("127.0.0.1","sessionmanagementtry")
+  err := database.InitDatabaseSession()
+  //"127.0.0.1","sessionmanagementtry"
   if err != nil{
     log.Fatal(err)
   }
@@ -28,11 +31,12 @@ func main(){
   }
   if mySession.Status == session.EXPIRED{
     log.Println("mySession is expired:",mySession)
+  }else{
+    log.Println("mySession is active:",mySession)
   }
-  log.Println("mySession is active:",mySession)
-  err = session.UserSM.DeleteSession(mySession.Sid)
+  deleted,err := session.UserSM.DeleteSession(mySession.Sid)
   if err != nil{
     log.Fatal("Could not delete session",err)
   }
-  log.Println("Deleted session!")
+  log.Println("Deleted",deleted,"sessions!")
 }
