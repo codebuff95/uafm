@@ -11,7 +11,6 @@ import(
 
 func main(){
   err := database.InitDatabaseSession()
-  //"127.0.0.1","sessionmanagementtry"
   if err != nil{
     log.Fatal(err)
   }

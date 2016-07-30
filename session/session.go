@@ -7,6 +7,7 @@ import(
   "time"
   "strings"
   "crypto/rand"
+  "encoding/base64"
   "log"
 )
 
@@ -41,7 +42,8 @@ func InitSMs(usercollectionname, formcollectionname string){
 func GenerateUniqueSid() string{
   sid := make([]byte,SIDLEN)
   rand.Read(sid)
-  return string(sid)
+  finalsid := base64.URLEncoding.EncodeToString(sid)
+  return string(finalsid[0:SIDLEN])
 }
 
 func (sm *SessionManager) GetSession(sid string) (*Session,error){
