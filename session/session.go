@@ -6,6 +6,8 @@ import(
   "gopkg.in/mgo.v2/bson"
   "time"
   "strings"
+  "crypto/rand"
+  "log"
 )
 
 var UserSM *SessionManager
@@ -26,8 +28,8 @@ const (
 	EXPIRED int = 1
 	ACTIVE  int = 2
 	DELETED int = 3
-	//SIDLEN Length of each SessionID.
-	SIDLEN int = 16
+	//SIDLEN Length of each SessionID. Change this value to change the length of each Session ID created by uafm.
+	SIDLEN int = 32
 )
 
 func InitSMs(usercollectionname, formcollectionname string){
@@ -35,8 +37,11 @@ func InitSMs(usercollectionname, formcollectionname string){
   FormSM = &SessionManager{Collection: database.DatabaseSession.DB(database.DatabaseName).C(formcollectionname)}
 }
 
+//GenerateUniqueSid is cryptographically safe enough with crypto/rand function.
 func GenerateUniqueSid() string{
-  return "aeiouasd"
+  sid := make([]byte,SIDLEN)
+  rand.Read(sid)
+  return string(sid)
 }
 
 func (sm *SessionManager) GetSession(sid string) (*Session,error){
@@ -61,8 +66,17 @@ func (sm *SessionManager) GetSession(sid string) (*Session,error){
 
 
 func (sm *SessionManager) SetSession(rid string, life time.Duration) (*Session,error){
-  mySession := &Session{}
-  mySession.Sid = GenerateUniqueSid()
+  var mySession,checkSession *Session
+  log.Println("Setting checkSession")
+  mySession = &Session{}
+  checkSession = &Session{Status:ACTIVE}
+  log.Println("Successfully Set checkSession")
+  for checkSession != nil && checkSession.Status == ACTIVE{
+    log.Println("In the checksession loop")
+    mySession.Sid = GenerateUniqueSid()
+    checkSession,_ = sm.GetSession(mySession.Sid)
+  }
+  log.Println("outside the checkSession loop")
   mySession.Expires = time.Now().Add(life)
   mySession.Rid = rid
   err := sm.Collection.Insert(mySession)
@@ -74,7 +88,10 @@ func (sm *SessionManager) SetSession(rid string, life time.Duration) (*Session,e
 }
 
 
-func (sm *SessionManager) DeleteSession(sid string) error {
-	err := sm.Collection.Remove(bson.M{"sid":sid})
-  return err
+func (sm *SessionManager) DeleteSession(sid string) (int,error) {
+	changeinfo,err := sm.Collection.RemoveAll(bson.M{"sid":sid})
+  if changeinfo == nil{
+    return 0,err
+  }
+  return changeinfo.Removed,err
 }
