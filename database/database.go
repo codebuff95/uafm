@@ -2,7 +2,7 @@ package database
 
 import(
   "gopkg.in/mgo.v2"
-  //"gopkg.in/mgo.v2/bson"
+  "log"
   "encoding/json"
   "os"
 )
@@ -11,15 +11,15 @@ var DatabaseName string
 var DatabaseSession *mgo.Session
 
 type DatabaseDetails struct{
-  url string `json:"url"`
-  dbname string `json:"dbname"`
+  Url string `json:"url"`
+  Dbname string `json:"dbname"`
 }
 
 type InitDatabaseError int
 
 func (err InitDatabaseError) Error() string{
   if err == PROBLEMOPENINGFILE{
-    return "Could not open file uafmconfigs/dbconfig.json"
+    return "Could not open file uafmconfig.json"
   }
   return "Miscellaneous Issues in database"
 }
@@ -29,10 +29,10 @@ const(
   PROBLEMDECODING = 1
 )
 
-func InitDatabaseSession() error{
+func InitDatabaseSession(dirtoconfig string) error{
   var err error
 
-  myFile, err := os.Open("uafmconfigs/dbconfig.json")
+  myFile, err := os.Open(dirtoconfig+"/uafmconfig.json")
   defer myFile.Close()
 
   if err != nil{
@@ -43,8 +43,8 @@ func InitDatabaseSession() error{
   if err != nil{
     return InitDatabaseError(PROBLEMDECODING)
   }
-  DatabaseSession,err = mgo.Dial(myDBDetails.url)
-  //defer DatabaseSession.Close().
-  DatabaseName = myDBDetails.dbname
+  DatabaseSession,err = mgo.Dial(myDBDetails.Url)
+  DatabaseName = myDBDetails.Dbname
+  log.Println("UAFM: Initialised new database session to url:",myDBDetails.Url,"and Dbname:",myDBDetails.Dbname)
   return nil
 }

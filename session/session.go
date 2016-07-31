@@ -1,7 +1,7 @@
 package session
 
 import(
-  "uafm/database"
+  "github.com/codebuff95/uafm/database"
   "gopkg.in/mgo.v2"
   "gopkg.in/mgo.v2/bson"
   "time"
@@ -31,7 +31,18 @@ const (
 	DELETED int = 3
 	//SIDLEN Length of each SessionID. Change this value to change the length of each Session ID created by uafm.
 	SIDLEN int = 32
+  cleanInXMinutes time.Duration = 60
 )
+
+func (sm *SessionManager) Clean(){
+  log.Println("Initialising cleaner")
+  for{
+    log.Println("*Cleaner Activated*")
+    changeinfo,_ := sm.Collection.RemoveAll(bson.M{"$lt":bson.M{"expires":time.Now()}})
+    log.Println("**Cleaner report: cleaned",changeinfo.Removed,"documents**")
+    time.Sleep(time.Minute * cleanInXMinutes) // Cleaning takes place every cleanInXMinutes minutes.
+  }
+}
 
 func InitSMs(usercollectionname, formcollectionname string){
   UserSM = &SessionManager{Collection: database.DatabaseSession.DB(database.DatabaseName).C(usercollectionname)}
@@ -69,22 +80,22 @@ func (sm *SessionManager) GetSession(sid string) (*Session,error){
 
 func (sm *SessionManager) SetSession(rid string, life time.Duration) (*Session,error){
   var mySession,checkSession *Session
-  log.Println("Setting checkSession")
   mySession = &Session{}
   checkSession = &Session{Status:ACTIVE}
-  log.Println("Successfully Set checkSession")
+
   for checkSession != nil && checkSession.Status == ACTIVE{
-    log.Println("In the checksession loop")
     mySession.Sid = GenerateUniqueSid()
     checkSession,_ = sm.GetSession(mySession.Sid)
   }
-  log.Println("outside the checkSession loop")
+
   mySession.Expires = time.Now().Add(life)
   mySession.Rid = rid
   err := sm.Collection.Insert(mySession)
   if err != nil{
+    log.Println("Error inserting new session in Colletion")
     return nil,err
   }
+  log.Println("Successfully inserted new session in Collection")
   mySession.Status = ACTIVE
   return mySession,nil
 }

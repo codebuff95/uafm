@@ -1,8 +1,8 @@
-package form
+package formsession
 
 import(
   "time"
-  "uafm/session"
+  "github.com/codebuff95/uafm/session"
 )
 
 type FormValidationError int

@@ -1,21 +1,24 @@
-package main
+package uafm
 
 import(
-  "uafm/database"
-  "uafm/session"
-  "log"
-  "time"
+  "github.com/codebuff95/uafm/database"
+  "github.com/codebuff95/uafm/session"
 )
 
 //Driver package for uafm.
 
-func main(){
-  err := database.InitDatabaseSession()
+func Init(dirtoconfig string) error{
+  err := database.InitDatabaseSession(dirtoconfig)
   if err != nil{
-    log.Fatal(err)
+    return err
   }
   session.InitSMs("usersession","formsession")
-  var mySession *session.Session
+  //go session.UserSM.Clean()
+  //go session.FormSM.Clean()
+  return nil
+  //Initialising collection cleaners.
+
+  /*var mySession *session.Session
   mySession, err = session.UserSM.SetSession("mymyrid1",time.Hour)
   if err != nil{
     log.Fatal("Could not SetSession:",err)
@@ -37,5 +40,5 @@ func main(){
   if err != nil{
     log.Fatal("Could not delete session",err)
   }
-  log.Println("Deleted",deleted,"sessions!")
+  log.Println("Deleted",deleted,"sessions!")*/
 }

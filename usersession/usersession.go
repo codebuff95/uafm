@@ -1,8 +1,8 @@
-package user
+package usersession
 
 import(
   "time"
-  "uafm/session"
+  "github.com/codebuff95/uafm/session"
 )
 
 type UserValidationError int
@@ -15,7 +15,7 @@ const(
 
 func (err UserValidationError) Error() string{
   if err == DOESNOTEXIST{
-    return "User Session does not exist"
+    return "User Session does not exist. Please login, and if the problem persists, make sure your browser supports cookies"
   }
   if err == EXPIRED{
     return "User Session has expired"
@@ -34,7 +34,7 @@ func CreateSession(rid string, life time.Duration) (*string,error){
 func ValidateSession(sid string) (*string,error){
   mySession,err := session.UserSM.GetSession(sid)
   if err != nil{
-    return nil,UserValidationError(MISC)
+    return nil,UserValidationError(DOESNOTEXIST)
   }
   if mySession == nil{
     return nil,UserValidationError(DOESNOTEXIST)
