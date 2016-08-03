@@ -7,12 +7,12 @@ import(
 
 //Driver package for uafm.
 
-func Init(dirtoconfig string) error{
+func Init(dirtoconfig,usersessioncollection,formsessioncollection string) error{
   err := database.InitDatabaseSession(dirtoconfig)
   if err != nil{
     return err
   }
-  session.InitSMs("usersession","formsession")
+  session.InitSMs(usersessioncollection,formsessioncollection)
   //go session.UserSM.Clean()
   //go session.FormSM.Clean()
   return nil
